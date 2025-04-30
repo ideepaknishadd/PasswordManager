@@ -35,7 +35,8 @@ fun PasswordDetailsScreen(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Account Details", style = MaterialTheme.typography.headlineSmall
+                text = "Account Details",
+                style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Account Type: ${password.accountType}")
@@ -43,7 +44,8 @@ fun PasswordDetailsScreen(
             Text(text = "Password: $decryptedPassword")
             Spacer(modifier = Modifier.height(16.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(onClick = onEdit) {
                     Text("Edit")

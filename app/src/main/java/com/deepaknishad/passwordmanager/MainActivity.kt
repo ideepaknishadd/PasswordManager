@@ -2,6 +2,7 @@ package com.deepaknishad.passwordmanager
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -27,21 +28,29 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.deepaknishad.passwordmanager.ui.screens.AddEditScreen
 import com.deepaknishad.passwordmanager.ui.screens.HomeScreen
 import com.deepaknishad.passwordmanager.ui.screens.PasswordDetailsScreen
+import com.deepaknishad.passwordmanager.util.EncryptionUtil
 import com.deepaknishad.passwordmanager.viewmodel.PasswordViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            EncryptionUtil.deleteKey()
+            EncryptionUtil.generateKey()
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Failed to generate key: ${e.message}")
+        }
         setContent {
             MaterialTheme {
                 PasswordManagerApp(activity = this@MainActivity)
@@ -54,7 +63,7 @@ class MainActivity : ComponentActivity() {
 fun PasswordManagerApp(activity: MainActivity) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val viewModel: PasswordViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val viewModel: PasswordViewModel = viewModel()
 
     // State for biometric authentication and toggle
     var isAuthenticated by remember { mutableStateOf(false) }
@@ -68,31 +77,28 @@ fun PasswordManagerApp(activity: MainActivity) {
 
     // Check if biometric hardware is available
     val biometricManager = BiometricManager.from(context)
-    val canAuthenticateWithBiometrics =
-        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> true
-            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE, BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                authErrorMessage = "Biometric authentication is not available on this device."
-                false
-            }
-
-            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                authErrorMessage =
-                    "No biometric credentials enrolled. Please set up biometrics in your device settings."
-                false
-            }
-
-            else -> {
-                authErrorMessage = "Unknown biometric error."
-                false
-            }
+    val canAuthenticateWithBiometrics = when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)) {
+        BiometricManager.BIOMETRIC_SUCCESS -> true
+        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE, BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+            authErrorMessage = "Biometric authentication is not available on this device."
+            false
         }
+        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+            authErrorMessage = "No biometric credentials enrolled. Please set up biometrics in your device settings."
+            false
+        }
+        else -> {
+            authErrorMessage = "Unknown biometric error."
+            false
+        }
+    }
 
     // Biometric Authentication Setup
     val executor = ContextCompat.getMainExecutor(context)
     val biometricPrompt = BiometricPrompt(
-        activity as FragmentActivity, // Use the passed MainActivity instance
-        executor, object : BiometricPrompt.AuthenticationCallback() {
+        activity,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 isAuthenticated = true
                 authErrorMessage = null
@@ -103,15 +109,12 @@ fun PasswordManagerApp(activity: MainActivity) {
                     BiometricPrompt.ERROR_CANCELED, BiometricPrompt.ERROR_USER_CANCELED, BiometricPrompt.ERROR_NEGATIVE_BUTTON -> {
                         "Authentication canceled. App will close."
                     }
-
                     BiometricPrompt.ERROR_NO_BIOMETRICS -> {
                         "No biometric credentials enrolled."
                     }
-
                     BiometricPrompt.ERROR_LOCKOUT, BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
                         "Too many failed attempts. Biometric authentication is locked."
                     }
-
                     else -> "Authentication error: $errString"
                 }
             }
@@ -119,10 +122,14 @@ fun PasswordManagerApp(activity: MainActivity) {
             override fun onAuthenticationFailed() {
                 authErrorMessage = "Authentication failed. Please try again."
             }
-        })
+        }
+    )
 
-    val promptInfo = BiometricPrompt.PromptInfo.Builder().setTitle("Authenticate")
-        .setSubtitle("Use your biometric to access the app").setNegativeButtonText("Cancel").build()
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Authenticate")
+        .setSubtitle("Use your biometric to access the app")
+        .setNegativeButtonText("Cancel")
+        .build()
 
     // Handle app closure on authentication cancel
     LaunchedEffect(authErrorMessage) {
@@ -183,14 +190,16 @@ fun PasswordManagerApp(activity: MainActivity) {
                             if (enabled && canAuthenticateWithBiometrics && !isAuthenticated) {
                                 biometricPrompt.authenticate(promptInfo)
                             }
-                        })
+                        }
+                    )
                 }
             }
         }
         composable("add") {
             if (isAuthenticated || !isBiometricEnabled) {
                 AddEditScreen(
-                    password = null, onSave = {
+                    password = null,
+                    onSave = {
                         try {
                             navController.popBackStack()
                         } catch (e: Exception) {
@@ -201,7 +210,8 @@ fun PasswordManagerApp(activity: MainActivity) {
                             ).show()
                             navController.navigate("home")
                         }
-                    })
+                    }
+                )
             }
         }
         composable("details/{id}") { backStackEntry ->
@@ -210,28 +220,32 @@ fun PasswordManagerApp(activity: MainActivity) {
                 val passwords by viewModel.passwords.collectAsState(initial = emptyList())
                 val password = passwords.find { it.id == id }
                 if (password != null) {
-                    PasswordDetailsScreen(password = password, onEdit = {
-                        try {
-                            navController.navigate("edit/${password.id}")
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                context,
-                                "Navigation error: Unable to open edit screen.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                    PasswordDetailsScreen(
+                        password = password,
+                        onEdit = {
+                            try {
+                                navController.navigate("edit/${password.id}")
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Navigation error: Unable to open edit screen.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        },
+                        onDelete = {
+                            try {
+                                viewModel.deletePassword(password)
+                                navController.popBackStack()
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Error deleting password: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
-                    }, onDelete = {
-                        try {
-                            viewModel.deletePassword(password)
-                            navController.popBackStack()
-                        } catch (e: Exception) {
-                            Toast.makeText(
-                                context,
-                                "Error deleting password: ${e.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    })
+                    )
                 } else {
                     Text(
                         text = "Password not found",
@@ -240,7 +254,9 @@ fun PasswordManagerApp(activity: MainActivity) {
                     )
                     LaunchedEffect(Unit) {
                         Toast.makeText(
-                            context, "Password with ID $id not found.", Toast.LENGTH_SHORT
+                            context,
+                            "Password with ID $id not found.",
+                            Toast.LENGTH_SHORT
                         ).show()
                         navController.popBackStack()
                     }
@@ -254,7 +270,8 @@ fun PasswordManagerApp(activity: MainActivity) {
                 val password = passwords.find { it.id == id }
                 if (password != null) {
                     AddEditScreen(
-                        password = password, onSave = {
+                        password = password,
+                        onSave = {
                             try {
                                 navController.popBackStack()
                             } catch (e: Exception) {
@@ -265,7 +282,8 @@ fun PasswordManagerApp(activity: MainActivity) {
                                 ).show()
                                 navController.navigate("details/$id")
                             }
-                        })
+                        }
+                    )
                 } else {
                     Text(
                         text = "Password not found",
@@ -274,7 +292,9 @@ fun PasswordManagerApp(activity: MainActivity) {
                     )
                     LaunchedEffect(Unit) {
                         Toast.makeText(
-                            context, "Password with ID $id not found.", Toast.LENGTH_SHORT
+                            context,
+                            "Password with ID $id not found.",
+                            Toast.LENGTH_SHORT
                         ).show()
                         navController.popBackStack()
                     }

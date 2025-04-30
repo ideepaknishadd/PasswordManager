@@ -1,7 +1,7 @@
 package com.deepaknishad.passwordmanager.viewmodel
 
 import android.app.Application
-import android.util.Base64
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.deepaknishad.passwordmanager.data.PasswordDatabase
@@ -16,46 +16,74 @@ class PasswordViewModel(application: Application) : AndroidViewModel(application
     val passwords: Flow<List<PasswordEntity>> = passwordDao.getAllPasswords()
 
     init {
-        EncryptionUtil.generateKey()
+        try {
+            EncryptionUtil.deleteKey()
+            EncryptionUtil.generateKey()
+        } catch (e: Exception) {
+            Log.e("PasswordViewModel", "Failed to generate key: ${e.message}")
+        }
     }
 
     fun addPassword(accountType: String, username: String, password: String) {
         viewModelScope.launch {
-            val (encryptedData, iv) = EncryptionUtil.encrypt(password)
-            val encryptedPassword = Base64.encodeToString(encryptedData, Base64.DEFAULT)
-            val ivString = Base64.encodeToString(iv, Base64.DEFAULT)
-            val passwordEntity = PasswordEntity(
-                accountType = accountType,
-                username = username,
-                encryptedPassword = encryptedPassword,
-                iv = ivString
-            )
-            passwordDao.insertPassword(passwordEntity)
+            try {
+                val (encryptedData, iv) = EncryptionUtil.encrypt(password)
+                if (encryptedData.isEmpty()) {
+                    throw IllegalStateException("Encryption failed: Empty data")
+                }
+                val passwordEntity = PasswordEntity(
+                    accountType = accountType,
+                    username = username,
+                    encryptedPassword = encryptedData,
+                    iv = iv
+                )
+                passwordDao.insertPassword(passwordEntity)
+                Log.d("PasswordViewModel", "Password inserted: $passwordEntity")
+            } catch (e: Exception) {
+                Log.e("PasswordViewModel", "Failed to add password: ${e.message}, Stacktrace: ${e.stackTraceToString()}")
+            }
         }
     }
 
     fun updatePassword(passwordEntity: PasswordEntity, newPassword: String) {
         viewModelScope.launch {
-            val (encryptedData, iv) = EncryptionUtil.encrypt(newPassword)
-            val encryptedPassword = Base64.encodeToString(encryptedData, Base64.DEFAULT)
-            val ivString = Base64.encodeToString(iv, Base64.DEFAULT)
-            val updatedEntity = passwordEntity.copy(
-                encryptedPassword = encryptedPassword, iv = ivString
-            )
-            passwordDao.updatePassword(updatedEntity)
+            try {
+                val (encryptedData, iv) = EncryptionUtil.encrypt(newPassword)
+                if (encryptedData.isEmpty()) {
+                    throw IllegalStateException("Encryption failed: Empty data")
+                }
+                val updatedEntity = passwordEntity.copy(
+                    encryptedPassword = encryptedData,
+                    iv = iv
+                )
+                passwordDao.updatePassword(updatedEntity)
+                Log.d("PasswordViewModel", "Password updated: $updatedEntity")
+            } catch (e: Exception) {
+                Log.e("PasswordViewModel", "Failed to update password: ${e.message}, Stacktrace: ${e.stackTraceToString()}")
+            }
+        }
+    }
+
+    fun getDecryptedPassword(passwordEntity: PasswordEntity): String {
+        return try {
+            val decrypted = EncryptionUtil.decrypt(passwordEntity.encryptedPassword, passwordEntity.iv)
+            Log.d("PasswordViewModel", "Decrypted password successfully")
+            decrypted
+        } catch (e: Exception) {
+            Log.e("PasswordViewModel", "Failed to decrypt password: ${e.message}, Stacktrace: ${e.stackTraceToString()}")
+            "Decryption failed"
         }
     }
 
     fun deletePassword(passwordEntity: PasswordEntity) {
         viewModelScope.launch {
-            passwordDao.deletePassword(passwordEntity)
+            try {
+                passwordDao.deletePassword(passwordEntity)
+                Log.d("PasswordViewModel", "Password deleted: $passwordEntity")
+            } catch (e: Exception) {
+                Log.e("PasswordViewModel", "Failed to delete password: ${e.message}")
+            }
         }
-    }
-
-    fun getDecryptedPassword(passwordEntity: PasswordEntity): String {
-        val encryptedData = Base64.decode(passwordEntity.encryptedPassword, Base64.DEFAULT)
-        val iv = Base64.decode(passwordEntity.iv, Base64.DEFAULT)
-        return EncryptionUtil.decrypt(encryptedData, iv)
     }
 
     fun generateRandomPassword(): String {

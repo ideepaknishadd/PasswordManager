@@ -60,17 +60,21 @@ fun AddEditScreen(
                 if (accountType.isBlank() || username.isBlank() || passwordInput.isBlank()) {
                     errorMessage = "All fields are required"
                 } else {
-                    if (password == null) {
-                        viewModel.addPassword(accountType, username, passwordInput)
-                    } else {
-                        viewModel.updatePassword(password, passwordInput)
+                    try {
+                        if (password == null) {
+                            viewModel.addPassword(accountType, username, passwordInput)
+                        } else {
+                            viewModel.updatePassword(password, passwordInput)
+                        }
+                        onSave()
+                    } catch (e: Exception) {
+                        errorMessage = "Failed to save: ${e.message}"
                     }
-                    onSave()
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Add New Account")
+            Text("Save")
         }
 
         if (password != null) {

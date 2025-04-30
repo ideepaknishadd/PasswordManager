@@ -16,7 +16,9 @@ abstract class PasswordDatabase : RoomDatabase() {
         fun getDatabase(context: Context): PasswordDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-                    context.applicationContext, PasswordDatabase::class.java, "password_database"
+                    context.applicationContext,
+                    PasswordDatabase::class.java,
+                    "password_database"
                 ).build()
                 INSTANCE = instance
                 instance

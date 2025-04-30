@@ -1,5 +1,6 @@
 package com.deepaknishad.passwordmanager.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,16 +33,23 @@ fun HomeScreen(
     onBiometricToggle: (Boolean) -> Unit,
     viewModel: PasswordViewModel = viewModel()
 ) {
-    val passwords = viewModel.passwords.collectAsState(initial = emptyList())
+    val passwords by viewModel.passwords.collectAsState(initial = emptyList())
+
+    // Log the passwords to verify Flow emission
+    LaunchedEffect(passwords) {
+        Log.d("HomeScreen", "Passwords updated: $passwords")
+    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddClick, containerColor = MaterialTheme.colorScheme.primary
+                onClick = onAddClick,
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Text("+", color = MaterialTheme.colorScheme.onPrimary)
             }
-        }) { padding ->
+        }
+    ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             Row(
                 modifier = Modifier
@@ -50,18 +60,20 @@ fun HomeScreen(
             ) {
                 Text("Biometric Authentication")
                 Switch(
-                    checked = isBiometricEnabled, onCheckedChange = onBiometricToggle
+                    checked = isBiometricEnabled,
+                    onCheckedChange = onBiometricToggle
                 )
             }
             LazyColumn(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                items(passwords.value) { password ->
+                items(passwords) { password ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
-                        onClick = { onDetailsClick(password) }) {
+                        onClick = { onDetailsClick(password) }
+                    ) {
                         Row(
                             modifier = Modifier
                                 .padding(16.dp)
@@ -73,7 +85,8 @@ fun HomeScreen(
                                 style = MaterialTheme.typography.titleMedium
                             )
                             Text(
-                                text = "****", style = MaterialTheme.typography.bodyMedium
+                                text = "****",
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
