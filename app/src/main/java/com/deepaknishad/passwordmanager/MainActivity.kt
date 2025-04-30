@@ -3,7 +3,6 @@ package com.deepaknishad.passwordmanager
 import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -39,7 +38,7 @@ import kotlinx.coroutines.runBlocking
 
 val Context.dataStore by preferencesDataStore(name = "settings")
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -91,7 +90,7 @@ fun PasswordManagerApp(activity: MainActivity) {
     // Biometric Authentication Setup
     val executor = ContextCompat.getMainExecutor(context)
     val biometricPrompt = BiometricPrompt(
-        activity as FragmentActivity, // Use the passed MainActivity instance
+        activity, // Use the passed MainActivity instance
         executor, object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 isAuthenticated = true
@@ -226,9 +225,7 @@ fun PasswordManagerApp(activity: MainActivity) {
                             navController.popBackStack()
                         } catch (e: Exception) {
                             Toast.makeText(
-                                context,
-                                "Error deleting password: ${e.message}",
-                                Toast.LENGTH_SHORT
+                                context, "Error deleting password: ${e.message}", Toast.LENGTH_SHORT
                             ).show()
                         }
                     })
