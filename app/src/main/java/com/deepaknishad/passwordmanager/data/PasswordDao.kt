@@ -47,7 +47,6 @@ interface PasswordDao {
         return rowsAffected
     }
 
-    // Internal implementations
     @Query("SELECT * FROM passwords ORDER BY id DESC")
     fun _getAllPasswords(): Flow<List<PasswordEntity>>
 

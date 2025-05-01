@@ -1,5 +1,6 @@
 package com.deepaknishad.passwordmanager.util
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,8 @@ fun PasswordStrengthMeter(password: String) {
         else -> Color.Green
     }
 
+    Log.d("PasswordStrengthMeter", "Password strength: $strength, color: $color")
+
     Box(
         modifier = Modifier
             .fillMaxWidth(fraction = strength / 100f)
@@ -33,5 +36,6 @@ fun calculatePasswordStrength(password: String): Int {
     if (password.any { it.isUpperCase() }) score += 20
     if (password.any { it.isLowerCase() }) score += 20
     if (password.any { "!@#$%^&*()".contains(it) }) score += 10
+    Log.d("PasswordStrengthMeter", "Calculated password strength: $score")
     return score.coerceAtMost(100)
 }

@@ -72,6 +72,9 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.datastore)
 
+    implementation (platform(libs.androidx.compose.bom.v20240300))
+    implementation (libs.androidx.material.icons.extended)
+
     // For MVVM architecture
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
