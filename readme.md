@@ -19,7 +19,7 @@ A secure password manager application
 - Room Database
 
 ## Installation
-1. Clone the repository: `git clone <https://github.com/chpl-aspire-10/PasswordManager.git>`
+1. Clone the repository: `git clone <https://github.com/ideepaknishadd/PasswordManager.git>`
 2. Open in Android Studio.
 3. Build and run on an emulator or physical device.
 
