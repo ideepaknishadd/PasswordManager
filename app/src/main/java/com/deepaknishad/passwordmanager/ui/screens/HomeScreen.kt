@@ -112,6 +112,13 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 8.dp),
                 thickness = 1.dp, color = Color.Gray
             )
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Designed & Developed by, ", fontSize = 12.sp, color = Color.Gray)
+                Text(text = "Deepak Nishad", fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+            }
+            HorizontalDivider(
+                thickness = 1.dp, color = Color.Gray
+            )
         }
     }, floatingActionButton = {
         FloatingActionButton(
