@@ -43,11 +43,13 @@ A secure password manager application built with Jetpack Compose and Kotlin, des
 
 ## Screenshots
 
-Below are screenshots of the app’s key screens. (Note: Ensure screenshot files are in the repository root directory.)
+Below are screenshots of the app’s key screens. (Note: Ensure screenshot files are in the `screenshots/` directory of the repository.)
 
 ### 1. Splash Screen
 - **Description**: Displays the app’s splash screen on launch, introducing the Password Manager.
-- **Screenshot**: ![Splash Screen](screenshots/splash_screen.jpg)
+<div align="center">
+  <img src="screenshots/splash_screen.jpg" alt="Splash Screen" width="200"/>
+</div>
 
 ### 2. Authentication Prompt
 - **Description**: Shows the system-provided authentication prompt when the app launches, if "Device Authentication" is enabled. Supports fingerprint, or device credentials (PIN, pattern, password).
@@ -55,27 +57,39 @@ Below are screenshots of the app’s key screens. (Note: Ensure screenshot files
 
 ### 3. Home Screen (Empty)
 - **Description**: Displays "No passwords saved yet" centered on the screen when no passwords are stored. Includes a top bar with "Password Manager" title and "Device Authentication" toggle, and a FAB.
-- **Screenshot**: ![Home Screen Empty](screenshots/home_screen_empty.jpg)
+<div align="center">
+  <img src="screenshots/home_screen_empty.jpg" alt="Home Screen Empty" width="200"/>
+</div>
 
 ### 4. Add Dialog
 - **Description**: A bottom sheet for adding passwords, with fields for account type, username, and password, a password strength meter, a generate password button, and a toggle for password visibility.
-- **Screenshot**: ![Add Dialog](screenshots/add_dialog.jpg)
+<div align="center">
+  <img src="screenshots/add_dialog.jpg" alt="Add Dialog" width="200"/>
+</div>
 
 ### 5. Home Screen (With Data)
 - **Description**: Shows the password list in a `LazyColumn` with `PasswordItem` cards (bold account name, "****", gray arrow icon). Includes the top bar and FAB.
-- **Screenshot**: ![Home Screen With Data](screenshots/home_screen_with_data.jpg)
+<div align="center">
+  <img src="screenshots/home_screen_with_data.jpg" alt="Home Screen With Data" width="200"/>
+</div>
 
 ### 6. Password Details
 - **Description**: A bottom sheet showing details of a selected password (account type, username, password) with buttons to edit or delete, and a toggle for password visibility.
-- **Screenshot**: ![Password Details](screenshots/password_details.jpg)
+<div align="center">
+  <img src="screenshots/password_details.jpg" alt="Password Details" width="200"/>
+</div>
 
 ### 7. Edit Dialog
 - **Description**: A bottom sheet for editing passwords, pre-filled with existing data, including fields for account type, username, and password, a password strength meter, a generate password button, and a toggle for password visibility.
-- **Screenshot**: ![Edit Dialog](screenshots/edit_dialog.jpg)
+<div align="center">
+  <img src="screenshots/edit_dialog.jpg" alt="Edit Dialog" width="200"/>
+</div>
 
 ### 8. Delete Dialog
 - **Description**: A confirmation bottom sheet for deleting a password, showing "Confirm Deletion" and "Are you sure you want to delete the account '[accountType]'?" with "Yes, Delete" and "Cancel" buttons.
-- **Screenshot**: ![Delete Dialog](screenshots/delete_dialog.jpg)
+<div align="center">
+  <img src="screenshots/delete_dialog.jpg" alt="Delete Dialog" width="200"/>
+</div>
 
 ## Developer Information
 - **Developer**: Deepak Nishad
