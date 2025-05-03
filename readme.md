@@ -33,7 +33,7 @@ A secure password manager application built with Jetpack Compose and Kotlin, des
 4. Build and run the app on an emulator or physical device (API 23+).
 
 ## Usage
-1. **Launch the App**: View the splash screen, then authenticate using face, fingerprint, PIN, pattern, or password if "Device Authentication" is enabled (default).
+1. **Launch the App**: View the splash screen, then authenticate using fingerprint, PIN, pattern, or password if "Device Authentication" is enabled (default).
 2. **Home Screen**: View the list of saved passwords. If no passwords are saved, a centered "No passwords saved yet" message appears.
 3. **Add Password**: Click the Floating Action Button (FAB) to open the Add Dialog and create a new password.
 4. **View Details**: Click a password in the list to open the Password Details Bottom Sheet, showing account type, username, and password.
@@ -43,39 +43,39 @@ A secure password manager application built with Jetpack Compose and Kotlin, des
 
 ## Screenshots
 
-Below are screenshots of the app’s key screens. (Note: Replace placeholder paths with actual screenshot files in the `screenshots/` directory of the repository.)
+Below are screenshots of the app’s key screens. (Note: Ensure screenshot files are in the repository root directory.)
 
 ### 1. Splash Screen
 - **Description**: Displays the app’s splash screen on launch, introducing the Password Manager.
-- **Screenshot**: ![Splash Screen](screenshots/splash.png)
+- **Screenshot**: ![Splash Screen](splash_screen.jpg)
 
 ### 2. Authentication Prompt
-- **Description**: Shows the system-provided authentication prompt when the app launches, if "Device Authentication" is enabled. Supports fingerprint, or device credentials (PIN, pattern, password).
-- **Screenshot**:  Appearance varies by Android version and device.
+- **Description**: Shows the system-provided authentication prompt when the app launches, if "Device Authentication" is enabled. Supports fingerprint, or device credentials (PIN, pattern, password). Appearance varies by Android version and device.
+- **Screenshot**: ![Authentication Prompt](auth_prompt.jpg)
 
 ### 3. Home Screen (Empty)
 - **Description**: Displays "No passwords saved yet" centered on the screen when no passwords are stored. Includes a top bar with "Password Manager" title and "Device Authentication" toggle, and a FAB.
-- **Screenshot**: ![Home Screen Empty](screenshots/home_no_data.png)
+- **Screenshot**: ![Home Screen Empty](home_screen_empty.jpg)
 
 ### 4. Add Dialog
 - **Description**: A bottom sheet for adding passwords, with fields for account type, username, and password, a password strength meter, a generate password button, and a toggle for password visibility.
-- **Screenshot**: ![Add Dialog](screenshots/add_dialog.png)
+- **Screenshot**: ![Add Dialog](add_dialog.jpg)
 
 ### 5. Home Screen (With Data)
 - **Description**: Shows the password list in a `LazyColumn` with `PasswordItem` cards (bold account name, "****", gray arrow icon). Includes the top bar and FAB.
-- **Screenshot**: ![Home Screen With Data](screenshots/home_data.png)
+- **Screenshot**: ![Home Screen With Data](home_screen_with_data.jpg)
 
 ### 6. Password Details
 - **Description**: A bottom sheet showing details of a selected password (account type, username, password) with buttons to edit or delete, and a toggle for password visibility.
-- **Screenshot**: ![Password Details](screenshots/details_dialog.png)
+- **Screenshot**: ![Password Details](password_details.jpg)
 
 ### 7. Edit Dialog
 - **Description**: A bottom sheet for editing passwords, pre-filled with existing data, including fields for account type, username, and password, a password strength meter, a generate password button, and a toggle for password visibility.
-- **Screenshot**: ![Edit Dialog](screenshots/edit_dialog.png)
+- **Screenshot**: ![Edit Dialog](edit_dialog.jpg)
 
 ### 8. Delete Dialog
 - **Description**: A confirmation bottom sheet for deleting a password, showing "Confirm Deletion" and "Are you sure you want to delete the account '[accountType]'?" with "Yes, Delete" and "Cancel" buttons.
-- **Screenshot**: ![Delete Dialog](screenshots/delete_dialog.png)
+- **Screenshot**: ![Delete Dialog](delete_dialog.jpg)
 
 ## Developer Information
 - **Developer**: Deepak Nishad
