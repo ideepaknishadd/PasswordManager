@@ -7,7 +7,7 @@ A secure password manager application built with Jetpack Compose and Kotlin, des
 - **Add, View, Edit, and Delete Passwords**: Use intuitive bottom sheet dialogs for all password operations.
 - **Secure Encryption**: Passwords are encrypted using AES with the Android Keystore for enhanced security.
 - **Room Database**: Local storage of credentials using Room for efficient and reliable data persistence.
-- **Device Authentication**: Supports face, fingerprint, PIN, pattern, and password authentication for secure app access.
+- **Device Authentication**: Supports fingerprint, PIN, pattern, and password authentication for secure app access.
 - **Password Strength Meter**: Visual indicator to assess password strength during creation or editing.
 - **Password Generation**: Generate strong, random passwords within the app.
 - **Toggle Password Visibility**: Show or hide passwords in add/edit and details screens for user convenience.
