@@ -51,10 +51,10 @@ import com.deepaknishad.passwordmanager.viewmodel.PasswordViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    isBiometricEnabled: Boolean,
-    biometricSupportStatus: String?,
-    canAuthenticateWithBiometrics: Boolean,
-    onBiometricToggle: (Boolean) -> Unit,
+    isDeviceAuthEnabled: Boolean,
+    authSupportStatus: String?,
+    canAuthenticateWithDevice: Boolean,
+    onDeviceAuthToggle: (Boolean) -> Unit,
     viewModel: PasswordViewModel = viewModel()
 ) {
     val passwords by viewModel.passwords.collectAsState(initial = emptyList())
@@ -89,19 +89,19 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Biometric Authentication",
+                        text = "Device Authentication",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Switch(
-                        checked = isBiometricEnabled,
-                        onCheckedChange = onBiometricToggle,
-                        enabled = canAuthenticateWithBiometrics, // Disable switch if biometric not supported
+                        checked = isDeviceAuthEnabled,
+                        onCheckedChange = onDeviceAuthToggle,
+                        enabled = canAuthenticateWithDevice
                     )
                 }
-                if (!canAuthenticateWithBiometrics && biometricSupportStatus != null) {
+                if (!canAuthenticateWithDevice && authSupportStatus != null) {
                     Text(
-                        text = biometricSupportStatus,
+                        text = authSupportStatus,
                         fontSize = 14.sp,
                         color = Color.Gray,
                         modifier = Modifier.padding(top = 4.dp)
@@ -109,8 +109,7 @@ fun HomeScreen(
                 }
             }
             HorizontalDivider(
-                modifier = Modifier.padding(top = 8.dp),
-                thickness = 1.dp, color = Color.Gray
+                modifier = Modifier.padding(top = 8.dp), thickness = 1.dp, color = Color.Gray
             )
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Designed & Developed by, ", fontSize = 12.sp, color = Color.Gray)
@@ -124,7 +123,7 @@ fun HomeScreen(
         FloatingActionButton(
             onClick = {
                 Log.d("HomeScreen", "FAB clicked: Opening AddEditBottomSheet for adding")
-                selectedPassword = null // Reset selected password for adding
+                selectedPassword = null
                 isEditing = false
                 showAddBottomSheet = true
             }, containerColor = Color(0xFF4A90E2), shape = CircleShape
@@ -134,7 +133,7 @@ fun HomeScreen(
     }) { padding ->
         Box(
             modifier = Modifier
-                .fillMaxSize() // Fill the entire screen height and width
+                .fillMaxSize()
                 .padding(padding)
         ) {
             if (passwords.isEmpty()) {
@@ -143,7 +142,7 @@ fun HomeScreen(
                     text = "No passwords saved yet",
                     fontSize = 16.sp,
                     color = Color.Gray,
-                    modifier = Modifier.align(Alignment.Center) // Center both vertically and horizontally
+                    modifier = Modifier.align(Alignment.Center)
                 )
             } else {
                 Log.d("HomeScreen", "Displaying ${passwords.size} passwords in LazyColumn")
@@ -158,7 +157,7 @@ fun HomeScreen(
                                 selectedPassword = password
                                 showDetailsBottomSheet = true
                             }, modifier = if (index == passwords.size - 1) {
-                                Modifier.padding(bottom = 100.dp) // Add bottom margin to the last item
+                                Modifier.padding(bottom = 100.dp)
                             } else {
                                 Modifier
                             }

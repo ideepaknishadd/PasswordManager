@@ -53,44 +53,48 @@ fun PasswordManagerApp(activity: MainActivity) {
 
     var isAuthenticated by remember { mutableStateOf(false) }
     var authErrorMessage by remember { mutableStateOf<String?>(null) }
-    var isCheckingBiometricSupport by remember { mutableStateOf(true) }
-    var isBiometricEnabled by remember {
+    var isCheckingAuthSupport by remember { mutableStateOf(true) }
+    var isDeviceAuthEnabled by remember {
         mutableStateOf(runBlocking {
             val enabled =
-                context.dataStore.data.first()[booleanPreferencesKey("biometric_enabled")] ?: true
-            Log.d("MainActivity", "PasswordManagerApp: Biometric enabled from DataStore: $enabled")
+                context.dataStore.data.first()[booleanPreferencesKey("device_auth_enabled")] ?: true
+            Log.d(
+                "MainActivity",
+                "PasswordManagerApp: Device auth enabled from DataStore: $enabled"
+            )
             enabled
         })
     }
-    var biometricSupportStatus by remember { mutableStateOf<String?>(null) }
+    var authSupportStatus by remember { mutableStateOf<String?>(null) }
 
     val biometricManager = BiometricManager.from(context)
-    val canAuthenticateWithBiometrics =
-        when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
-            BiometricManager.BIOMETRIC_SUCCESS -> {
-                Log.d("MainActivity", "PasswordManagerApp: Biometric authentication available")
-                true
-            }
-
-            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE, BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                biometricSupportStatus = "Biometric authentication is not available on this device."
-                Log.w("MainActivity", "PasswordManagerApp: No biometric hardware available")
-                false
-            }
-
-            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                biometricSupportStatus =
-                    "No biometric credentials enrolled. Please set up biometrics in your device settings."
-                Log.w("MainActivity", "PasswordManagerApp: No biometric credentials enrolled")
-                false
-            }
-
-            else -> {
-                biometricSupportStatus = "Unknown biometric error."
-                Log.e("MainActivity", "PasswordManagerApp: Unknown biometric error")
-                false
-            }
+    val authenticators =
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+    val canAuthenticateWithDevice = when (biometricManager.canAuthenticate(authenticators)) {
+        BiometricManager.BIOMETRIC_SUCCESS -> {
+            Log.d("MainActivity", "PasswordManagerApp: Device authentication available")
+            true
         }
+
+        BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE, BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
+            authSupportStatus = "Device does not support biometric or credential authentication."
+            Log.w("MainActivity", "PasswordManagerApp: No authentication hardware available")
+            false
+        }
+
+        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+            authSupportStatus =
+                "No biometric or device credentials enrolled. Please set up authentication in your device settings."
+            Log.w("MainActivity", "PasswordManagerApp: No authentication credentials enrolled")
+            false
+        }
+
+        else -> {
+            authSupportStatus = "Unknown authentication error."
+            Log.e("MainActivity", "PasswordManagerApp: Unknown authentication error")
+            false
+        }
+    }
 
     val executor = ContextCompat.getMainExecutor(context)
     val biometricPrompt = BiometricPrompt(
@@ -109,14 +113,17 @@ fun PasswordManagerApp(activity: MainActivity) {
                         "Authentication canceled. App will close."
                     }
 
-                    BiometricPrompt.ERROR_NO_BIOMETRICS -> {
-                        Log.w("MainActivity", "BiometricPrompt: No biometric credentials enrolled")
-                        "No biometric credentials enrolled."
+                    BiometricPrompt.ERROR_NO_BIOMETRICS, BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> {
+                        Log.w(
+                            "MainActivity",
+                            "BiometricPrompt: No authentication credentials enrolled"
+                        )
+                        "No biometric or device credentials enrolled."
                     }
 
                     BiometricPrompt.ERROR_LOCKOUT, BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
                         Log.w("MainActivity", "BiometricPrompt: Too many failed attempts")
-                        "Too many failed attempts. Biometric authentication is locked."
+                        "Too many failed attempts. Authentication is locked."
                     }
 
                     else -> {
@@ -133,35 +140,37 @@ fun PasswordManagerApp(activity: MainActivity) {
         })
 
     val promptInfo = BiometricPrompt.PromptInfo.Builder().setTitle("Authenticate")
-        .setSubtitle("Use your biometric to access the app").setNegativeButtonText("Cancel").build()
+        .setSubtitle("Use biometrics or device credentials (PIN, pattern, or password)")
+        .setAllowedAuthenticators(authenticators).build()
 
     LaunchedEffect(authErrorMessage) {
         if (authErrorMessage == "Authentication canceled. App will close.") {
             Log.d(
-                "MainActivity", "PasswordManagerApp: Closing app due to authentication cancellation"
+                "MainActivity",
+                "PasswordManagerApp: Closing app due to authentication cancellation"
             )
             activity.finish()
         }
     }
 
-    LaunchedEffect(isCheckingBiometricSupport) {
-        if (canAuthenticateWithBiometrics && isBiometricEnabled) {
-            Log.d("MainActivity", "PasswordManagerApp: Prompting for biometric authentication")
+    LaunchedEffect(isCheckingAuthSupport) {
+        if (canAuthenticateWithDevice && isDeviceAuthEnabled) {
+            Log.d("MainActivity", "PasswordManagerApp: Prompting for device authentication")
             biometricPrompt.authenticate(promptInfo)
-        } else if (!canAuthenticateWithBiometrics) {
+        } else if (!canAuthenticateWithDevice) {
             Log.d(
                 "MainActivity",
-                "PasswordManagerApp: Biometric not supported, proceeding without authentication"
+                "PasswordManagerApp: Device authentication not supported, proceeding without authentication"
             )
-            isAuthenticated = true // Allow app to proceed without biometric
+            isAuthenticated = true
         }
-        isCheckingBiometricSupport = false
-        Log.d("MainActivity", "PasswordManagerApp: Finished checking biometric support")
+        isCheckingAuthSupport = false
+        Log.d("MainActivity", "PasswordManagerApp: Finished checking authentication support")
     }
 
-    if (isCheckingBiometricSupport) {
-        Log.d("MainActivity", "PasswordManagerApp: Showing biometric support check UI")
-        Text("Checking biometric support...", modifier = Modifier.padding(16.dp))
+    if (isCheckingAuthSupport) {
+        Log.d("MainActivity", "PasswordManagerApp: Showing authentication support check UI")
+        Text("Checking authentication support...", modifier = Modifier.padding(16.dp))
         return
     }
 
@@ -175,30 +184,31 @@ fun PasswordManagerApp(activity: MainActivity) {
         return
     }
 
-    if (isAuthenticated || !isBiometricEnabled || !canAuthenticateWithBiometrics) {
+    if (isAuthenticated || !isDeviceAuthEnabled || !canAuthenticateWithDevice) {
         Log.d(
             "MainActivity",
-            "PasswordManagerApp: Rendering HomeScreen (authenticated: $isAuthenticated, biometricEnabled: $isBiometricEnabled)"
+            "PasswordManagerApp: Rendering HomeScreen (authenticated: $isAuthenticated, deviceAuthEnabled: $isDeviceAuthEnabled)"
         )
         Column(modifier = Modifier.fillMaxSize()) {
             HomeScreen(
-                isBiometricEnabled = isBiometricEnabled,
-                biometricSupportStatus = biometricSupportStatus,
-                canAuthenticateWithBiometrics = canAuthenticateWithBiometrics,
-                onBiometricToggle = { enabled ->
+                isDeviceAuthEnabled = isDeviceAuthEnabled,
+                authSupportStatus = authSupportStatus,
+                canAuthenticateWithDevice = canAuthenticateWithDevice,
+                onDeviceAuthToggle = { enabled ->
                     Log.d(
-                        "MainActivity", "PasswordManagerApp: Biometric toggle changed to: $enabled"
+                        "MainActivity",
+                        "PasswordManagerApp: Device auth toggle changed to: $enabled"
                     )
                     runBlocking {
                         context.dataStore.edit { settings ->
-                            settings[booleanPreferencesKey("biometric_enabled")] = enabled
+                            settings[booleanPreferencesKey("device_auth_enabled")] = enabled
                         }
                     }
-                    isBiometricEnabled = enabled
-                    if (enabled && canAuthenticateWithBiometrics && !isAuthenticated) {
+                    isDeviceAuthEnabled = enabled
+                    if (enabled && canAuthenticateWithDevice && !isAuthenticated) {
                         Log.d(
                             "MainActivity",
-                            "PasswordManagerApp: Re-prompting for biometric authentication after toggle"
+                            "PasswordManagerApp: Re-prompting for device authentication after toggle"
                         )
                         biometricPrompt.authenticate(promptInfo)
                     }
