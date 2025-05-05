@@ -43,7 +43,7 @@ A secure password manager application built with Jetpack Compose and Kotlin, des
 
 ## Screenshots
 
-Below are screenshots of the app’s key screens. (Note: Ensure screenshot files are in the `screenshots/` directory of the repository.)
+Below are screenshots of the app’s key screens.
 
 ### 1. Splash Screen
 - **Description**: Displays the app’s splash screen on launch, introducing the Password Manager.
