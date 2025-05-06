@@ -94,6 +94,9 @@ dependencies {
     // Navigation components
     implementation(libs.androidx.navigation.compose)
 
+    // DB Inspector
+    implementation(libs.dbinspector)
+
 }
 
 kapt {
