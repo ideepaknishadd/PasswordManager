@@ -95,7 +95,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     // DB Inspector
-    implementation(libs.dbinspector)
+//    implementation(libs.dbinspector)
 
 }
 
